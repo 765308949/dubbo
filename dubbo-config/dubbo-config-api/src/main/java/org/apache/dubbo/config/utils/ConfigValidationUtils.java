@@ -181,6 +181,7 @@ public class ConfigValidationUtils {
                 }
                 if (!RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
                     Map<String, String> map = new HashMap<String, String>();
+                    //application是当前应用配置
                     AbstractConfig.appendParameters(map, application);
                     AbstractConfig.appendParameters(map, config);
                     map.put(PATH_KEY, RegistryService.class.getName());
@@ -320,17 +321,20 @@ public class ConfigValidationUtils {
     }
 
     public static void validateAbstractInterfaceConfig(AbstractInterfaceConfig config) {
+        //全部都是在检验是否符合各种值的要求
         checkName(LOCAL_KEY, config.getLocal());
         checkName("stub", config.getStub());
         checkMultiName("owner", config.getOwner());
-
+        //检查是否有扩展方法
         checkExtension(ProxyFactory.class, PROXY_KEY, config.getProxy());
         checkExtension(Cluster.class, CLUSTER_KEY, config.getCluster());
+        //这是检查带有多名字和逗号是否有扩展方法
         checkMultiExtension(Filter.class, FILE_KEY, config.getFilter());
         checkNameHasSymbol(LAYER_KEY, config.getLayer());
 
         List<MethodConfig> methods = config.getMethods();
         if (CollectionUtils.isNotEmpty(methods)) {
+            //:: 的作用是把lamda表达式里面的值穿给里面的方法
             methods.forEach(ConfigValidationUtils::validateMethodConfig);
         }
     }
@@ -366,6 +370,8 @@ public class ConfigValidationUtils {
     }
 
     public static void validateReferenceConfig(ReferenceConfig config) {
+        //todo  这个方法的作用需要记录
+        //这几个check都是检查变量是否符合
         checkMultiExtension(InvokerListener.class, "listener", config.getListener());
         checkKey(VERSION_KEY, config.getVersion());
         checkKey(GROUP_KEY, config.getGroup());
@@ -515,6 +521,7 @@ public class ConfigValidationUtils {
         checkMethodName("name", config.getName());
 
         String mock = config.getMock();
+        //todo mock的逻辑是什么
         if (StringUtils.isNotEmpty(mock)) {
             if (mock.startsWith(RETURN_PREFIX) || mock.startsWith(THROW_PREFIX + " ")) {
                 checkLength(MOCK_KEY, mock);

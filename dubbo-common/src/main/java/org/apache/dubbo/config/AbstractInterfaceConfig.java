@@ -47,6 +47,7 @@ import static org.apache.dubbo.common.constants.CommonConstants.TIMESTAMP_KEY;
  * AbstractDefaultConfig
  *
  * @export
+ * 继承 AbstractMethodConfig ，抽象接口配置类。
  */
 public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
@@ -58,6 +59,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     protected String local;
 
     /**
+     * 服务接口客户端本地代理类名，用于在客户端执行本地逻辑，如本地缓存等
      * Local stub class name for the service interface
      */
     protected String stub;
@@ -74,6 +76,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     /**
      * Cluster type
+     * 集群容错方式
      */
     protected String cluster;
 
@@ -178,6 +181,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
      * Check whether the registry config is exists, and then conversion it to {@link RegistryConfig}
      */
     public void checkRegistry() {
+        // 读取外部化配置的
         convertRegistryIdsToRegistries();
 
         for (RegistryConfig registryConfig : registries) {
@@ -217,6 +221,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
             for (MethodConfig methodBean : methods) {
                 methodBean.setService(interfaceClass.getName());
                 methodBean.setServiceId(this.getId());
+                //找到所有的set方法 把内部的值重新注入一遍
                 methodBean.refresh();
                 String methodName = methodBean.getName();
                 if (StringUtils.isEmpty(methodName)) {
@@ -269,7 +274,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                     "(" + interfaceClass.getName() + ")\" in local implementation class " + localClass.getName());
         }
     }
-
+ // 这里执行完以后可以保证所有注册中心都是可用的
     private void convertRegistryIdsToRegistries() {
         computeValidRegistryIds();
         if (StringUtils.isEmpty(registryIds)) {
@@ -286,10 +291,12 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                 setRegistries(registryConfigs);
             }
         } else {
+            //\\s正则表示空白
             String[] ids = COMMA_SPLIT_PATTERN.split(registryIds);
             List<RegistryConfig> tmpRegistries = new ArrayList<>();
             Arrays.stream(ids).forEach(id -> {
                 if (tmpRegistries.stream().noneMatch(reg -> reg.getId().equals(id))) {
+                    //optional java8中的类  用来判断是否为null 并且会避免空指针
                     Optional<RegistryConfig> globalRegistry = ApplicationModel.getConfigManager().getRegistry(id);
                     if (globalRegistry.isPresent()) {
                         tmpRegistries.add(globalRegistry.get());
@@ -314,6 +321,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     public void completeCompoundConfigs(AbstractInterfaceConfig interfaceConfig) {
         if (interfaceConfig != null) {
+            // 从 consumer 中获取 Application 实例，下同
             if (application == null) {
                 setApplication(interfaceConfig.getApplication());
             }

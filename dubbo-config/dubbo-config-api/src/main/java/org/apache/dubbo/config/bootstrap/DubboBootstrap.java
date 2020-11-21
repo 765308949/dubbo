@@ -1077,6 +1077,7 @@ public class DubboBootstrap extends GenericEventListener {
         configManager.getServices().forEach(sc -> {
             // TODO, compatible with ServiceConfig.export()
             ServiceConfig serviceConfig = (ServiceConfig) sc;
+            //todo 这里的额boostrap不知道是什么
             serviceConfig.setBootstrap(this);
 
             if (exportAsync) {

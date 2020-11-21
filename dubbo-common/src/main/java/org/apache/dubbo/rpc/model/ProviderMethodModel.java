@@ -32,7 +32,8 @@ public class ProviderMethodModel {
     private final String[] methodArgTypes;
     private final Type[] genericParameterTypes;
     private final ConcurrentMap<String, Object> attributeMap = new ConcurrentHashMap<>();
-
+    //method.getGenericParameterTypes()  返回类型和泛型
+    //method.getParameterTypes()  只是返回类型 不返回泛型
     public ProviderMethodModel(Method method) {
         this.method = method;
         this.methodName = method.getName();

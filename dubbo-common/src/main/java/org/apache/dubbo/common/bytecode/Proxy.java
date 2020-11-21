@@ -79,18 +79,21 @@ public abstract class Proxy {
         }
 
         StringBuilder sb = new StringBuilder();
+        // 遍历接口列表
         for (int i = 0; i < ics.length; i++) {
             String itf = ics[i].getName();
+            // 检测类型是否为接口
             if (!ics[i].isInterface()) {
                 throw new RuntimeException(itf + " is not a interface.");
             }
 
             Class<?> tmp = null;
             try {
+                // 重新加载接口类
                 tmp = Class.forName(itf, false, cl);
             } catch (ClassNotFoundException e) {
             }
-
+// 检测接口是否相同，这里 tmp 有可能为空
             if (tmp != ics[i]) {
                 throw new IllegalArgumentException(ics[i] + " is not visible from class loader");
             }
@@ -117,7 +120,8 @@ public abstract class Proxy {
                         return proxy;
                     }
                 }
-
+                // 并发控制，保证只有一个线程可以进行后续操作
+                //这里用一个值把其他线程堵住了，只能是一个线程放到map中
                 if (value == PENDING_GENERATION_MARKER) {
                     try {
                         cache.wait();

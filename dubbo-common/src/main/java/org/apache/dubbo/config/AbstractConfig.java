@@ -111,6 +111,7 @@ public abstract class AbstractConfig implements Serializable {
         appendParameters(parameters, config, null);
     }
 
+    //配置中心拿配置
     @SuppressWarnings("unchecked")
     public static void appendParameters(Map<String, String> parameters, Object config, String prefix) {
         if (config == null) {
@@ -122,6 +123,7 @@ public abstract class AbstractConfig implements Serializable {
                 String name = method.getName();
                 if (MethodUtils.isGetter(method)) {
                     Parameter parameter = method.getAnnotation(Parameter.class);
+                    //返回值类型为 Object 或排除( `@Parameter.exclue=true` )的配置项，跳过。
                     if (method.getReturnType() == Object.class || parameter != null && parameter.excluded()) {
                         continue;
                     }
@@ -129,6 +131,7 @@ public abstract class AbstractConfig implements Serializable {
                     if (parameter != null && parameter.key().length() > 0) {
                         key = parameter.key();
                     } else {
+                        //获取getter里面的属性
                         key = calculatePropertyFromGetter(name);
                     }
                     Object value = method.invoke(config);

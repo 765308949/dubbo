@@ -38,6 +38,7 @@ public class ServiceRepository extends LifecycleAdapter implements FrameworkExt 
     public static final String NAME = "repository";
 
     // services
+    //todo ServiceDescriptor是用来整合servicemetadata和servicename的吗
     private ConcurrentMap<String, ServiceDescriptor> services = new ConcurrentHashMap<>();
 
     // consumers
@@ -115,9 +116,11 @@ public class ServiceRepository extends LifecycleAdapter implements FrameworkExt 
                                  Object serviceInstance,
                                  ServiceDescriptor serviceModel,
                                  ServiceConfigBase<?> serviceConfig,
+                                 //serviceMetadata 现在还没有使用
                                  ServiceMetadata serviceMetadata) {
         ProviderModel providerModel = new ProviderModel(serviceKey, serviceInstance, serviceModel, serviceConfig,
                 serviceMetadata);
+        //如果存在重复的key,那么putIfAbsent不会放入值
         providers.putIfAbsent(serviceKey, providerModel);
         providersWithoutGroup.putIfAbsent(keyWithoutGroup(serviceKey), providerModel);
     }

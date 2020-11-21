@@ -223,6 +223,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
     private void checkAndUpdateSubConfigs() {
         // Use default configs defined explicitly with global scope
         completeCompoundConfigs();
+        //checkDefault 主要是 实例化 ProviderConfig过程，如果 ProviderConfig 不存在，那么就新建一个默认的，并执行 refresh 方法。
         checkDefault();
         checkProtocol();
         // init some null configuration.
@@ -310,6 +311,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
     private void doExportUrls() {
         ServiceRepository repository = ApplicationModel.getServiceRepository();
         ServiceDescriptor serviceDescriptor = repository.registerService(getInterfaceClass());
+        //注册服务到注册中心
         repository.registerProvider(
                 getUniqueServiceName(),
                 ref,
@@ -333,14 +335,15 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
     }
 
     private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
+        // 协议名
         String name = protocolConfig.getName();
         if (StringUtils.isEmpty(name)) {
             name = DUBBO;
         }
-
+        // 将 `side`，`dubbo`，`timestamp`，`pid` 参数，添加到 `map` 集合中
         Map<String, String> map = new HashMap<String, String>();
         map.put(SIDE_KEY, PROVIDER_SIDE);
-
+        //拼接
         ServiceConfig.appendRuntimeParameters(map);
         AbstractConfig.appendParameters(map, getMetrics());
         AbstractConfig.appendParameters(map, getApplication());
@@ -386,6 +389,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                                             }
                                         } else {
                                             // multiple callbacks in the method
+                                            //方法中有多个回调
                                             for (int j = 0; j < argtypes.length; j++) {
                                                 Class<?> argclazz = argtypes[j];
                                                 if (argclazz.getName().equals(argument.getType())) {
@@ -414,6 +418,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
             map.put(GENERIC_KEY, generic);
             map.put(METHODS_KEY, ANY_VALUE);
         } else {
+            //不是泛化的方法
             String revision = Version.getVersion(interfaceClass, version);
             if (revision != null && revision.length() > 0) {
                 map.put(REVISION_KEY, revision);
@@ -443,11 +448,16 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
             }
         }
         //init serviceMetadata attachments
+        //todo 说好了这里不用的
         serviceMetadata.getAttachments().putAll(map);
 
         // export service
+        //终于开始暴露服务
+        //，获得注册到注册中心的服务提供者 Host
         String host = findConfigedHosts(protocolConfig, registryURLs, map);
+        //获得注册到注册中心的服务提供者 Port 。
         Integer port = findConfigedPorts(protocolConfig, name, map);
+        //所有的核心就是为了把这个url给处理好
         URL url = new URL(name, host, port, getContextPath(protocolConfig).map(p -> p + "/" + path).orElse(path), map);
 
         // You can customize Configurator to append extra parameters
@@ -470,6 +480,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                 if (CollectionUtils.isNotEmpty(registryURLs)) {
                     for (URL registryURL : registryURLs) {
                         //if protocol is only injvm ,not register
+                        //Injvm是代表是一种injvm协议，在jvm内进行调用
                         if (LOCAL_PROTOCOL.equalsIgnoreCase(url.getProtocol())) {
                             continue;
                         }
@@ -487,6 +498,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                         }
 
                         // For providers, this is used to enable custom proxy to generate invoker
+                        //将自定义的proxy进行暴露
                         String proxy = url.getParameter(PROXY_KEY);
                         if (StringUtils.isNotEmpty(proxy)) {
                             registryURL = registryURL.addParameter(PROXY_KEY, proxy);
@@ -508,7 +520,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                     Exporter<?> exporter = PROTOCOL.export(wrapperInvoker);
                     exporters.add(exporter);
                 }
-
+                //最终将url推到线上
                 MetadataUtils.publishServiceDefinition(url);
             }
         }

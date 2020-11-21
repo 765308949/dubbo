@@ -182,6 +182,7 @@ public abstract class ServiceConfigBase<T> extends AbstractServiceConfig {
     }
 
     public Optional<String> getContextPath(ProtocolConfig protocolConfig) {
+        // 获得 contextPath ，基础路径，即java web应用中常说的context path 获得项目路径吧
         String contextPath = protocolConfig.getContextpath();
         if (StringUtils.isEmpty(contextPath) && provider != null) {
             contextPath = provider.getContextpath();
@@ -205,6 +206,7 @@ public abstract class ServiceConfigBase<T> extends AbstractServiceConfig {
         if (CollectionUtils.isEmpty(protocols) && provider != null) {
             setProtocols(provider.getProtocols());
         }
+        // 如果ServiceConfig有，则进一步覆盖
         convertProtocolIdsToProtocols();
     }
 
